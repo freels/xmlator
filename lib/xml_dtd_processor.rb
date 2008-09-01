@@ -15,7 +15,7 @@ class RubyToXMLProcessor < SexpProcessor
   # callbacks for SexpProcessor
   def process_fcall(exp)
     if dtd.is_element? exp[1]
-      fcall_to_xml_call(exp)
+      function_call_to_xml_call(exp)
     else
       d, name, args = exp.shift, exp.shift, exp.shift
       if args.nil?
@@ -30,7 +30,7 @@ class RubyToXMLProcessor < SexpProcessor
     d, fcall, d, block = exp.shift, exp.shift, exp.shift, exp.shift
 
     if dtd.is_element? fcall[1]
-      iter_to_xml_call(fcall, block)
+      function_call_to_xml_call(fcall, block)
     else
       s(:iter, process(fcall), nil, process(block))
     end
@@ -41,29 +41,25 @@ class RubyToXMLProcessor < SexpProcessor
   def indent
     @indent ||= 0
     @indent += 2
-    yield
+    result = yield
     @indent -= 2
+    result
   end
 
-
-
-  def fcall_to_xml_call(fcall)
+  
+  def function_call_to_xml_call(fcall, block = nil)
     d, name, args = fcall.shift, fcall.shift, fcall.shift
-    attrs, body = attrs_and_body_from(process(args))
     
-    to_xml_fcall(name, attrs, body)
-  end
-
-  def iter_to_xml_call(fcall, body)
-    d, name, args = fcall.shift, fcall.shift, fcall.shift
-    attrs = attrs_and_body_from(process(args)).first
+    attrs, body = if block.nil?
+      attrs_and_body_from(process(args))
+    else
+      [attrs_and_body_from(process(args)).first, indent { process block }]
+    end
     
-    indent { body = process body }
-    
-    to_xml_fcall(name, attrs, body)
+    xml_fcall name, attrs, body
   end
   
-  def to_xml_fcall(name, attrs, body)
+  def xml_fcall(name, attrs, body)
     unless dtd.elements[name].has_body?
       output_xml_sexp "#{' ' * @indent}<#{name}", attrs, " />\n"
     else

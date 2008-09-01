@@ -6,9 +6,6 @@ require 'lib/sexp_processor'
 # in s expression assigns, d is a dummy var that isn't used
 
 class RubyToXMLProcessor < SexpProcessor
-  def initialize(dtd)
-    self.dtd = dtd
-  end
   
   attr_accessor :dtd
 
@@ -123,10 +120,8 @@ class RubyToXMLProcessor < SexpProcessor
   end
 
   def attr_from_pair(key, val)
-    if val.is_a? Boolean
-      return nil unless val
-      val = key
-    end
+    return nil if val == false
+    val = key if val === true
           
     str(" ", key, "=\"", val, "\"")
   end

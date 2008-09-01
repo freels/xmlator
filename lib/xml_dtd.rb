@@ -19,6 +19,7 @@ class XmlDTD
     end
 
     def elem(name, &block)
+      name = name.to_sym
       e = elements[name] || XmlElement.new(name)
       e.instance_eval &block unless block.nil?
       elements[name] = e
@@ -37,11 +38,13 @@ end
 
 class XmlElement
   def initialize(name)
-    @name = name.to_sym
+    @name = name
+    has_body true
   end
   
   def has_body(bool = nil)
     @has_body = bool unless bool.nil?
+    @has_body
   end
   
   alias_method :has_body?, :has_body

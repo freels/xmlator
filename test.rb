@@ -63,7 +63,9 @@ puts "\n"
 
 puts "optimized S-expression"
 puts "----------------------"
-s = RubyToXMLProcessor.new(Html4Strict).process(h.to_sexp)
+processor = RubyToXMLProcessor.new
+processor.dtd = Html4Strict
+s = processor.process(h.to_sexp)
 p s
 puts "\n"
 

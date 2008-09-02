@@ -1,4 +1,4 @@
-class Html4Strict < ParseXml::DTD
+class Html4Strict < Xmlator::DTD
   doctype :HTML, :PUBLIC, "-//W3C//DTD HTML 4.01//EN", "http://www.w3.org/TR/html4/strict.dtd"
   
   # allow_all_attributes # don't raise when encountering an unknown attribute

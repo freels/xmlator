@@ -1,4 +1,4 @@
-module ParseXml
+module Xmlator
   class Element
     def initialize(name)
       @name = name

@@ -1,7 +1,7 @@
 $: << 'lib'
 
 require 'rubygems'
-require 'parsexml'
+require 'xmlator'
 require 'html_dtd'
 require 'markaby'
 require 'erb'

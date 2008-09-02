@@ -1,5 +1,5 @@
 # in s expression assigns, _ is a dummy variable that isn't used
-module ParseXml
+module Xmlator
   class Processor < SexpProcessor
 
     attr_accessor :dtd

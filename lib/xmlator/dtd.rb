@@ -1,4 +1,4 @@
-module ParseXml
+module Xmlator
   class DTD
     class << self
       

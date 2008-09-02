@@ -1,1 +1,0 @@
-require 'parse_xml'

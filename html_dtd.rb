@@ -29,7 +29,7 @@ class Html4Strict < ParseXml::DTD
   end
     
   
-  %w(area base br hr input link meta param).each do |tag|
+  %w(area base br hr input img link meta param).each do |tag|
     elem(tag) { self_closing }
   end
   

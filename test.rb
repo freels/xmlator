@@ -55,11 +55,11 @@ require 'benchmark'
 # puts "------"
 # eval(b)
 
-def erbous(foo, a_title='icky')
+def erb(title_id, a_title)
   template = ERB.new <<-end_erb
   <html>
     <head>
-      <title id="<%= foo %>"><%= a_title %></title>
+      <title id="<%= title_id %>"><%= a_title %></title>
     </head>
     <body id="test" class="class">
       <img id="test" src="http://img.jpg" />
@@ -73,11 +73,11 @@ def erbous(foo, a_title='icky')
   template.result(binding)
 end
 
-def markabous(foo, a_title='icky')  
-  mab = Markaby::Builder.new(:foo => foo, :a_title => a_title)
+def markaby(title_id, a_title)  
+  mab = Markaby::Builder.new(:title_id => title_id, :a_title => a_title)
   mab.html do
     head do
-      title a_title, :id => foo
+      title a_title, :id => title_id
     end
     body :id => "test", :class => 'class' do
       img :id => 'test', :src => "http://img.jpg"
@@ -89,11 +89,11 @@ def markabous(foo, a_title='icky')
 end
 
 
-def renderous(foo, a_title='icky')  
+def parsexml(title_id, a_title)  
   Html4Strict.render do
     html do
       head do
-        title a_title, :id => foo
+        title a_title, :id => title_id
       end
       body :id => "test", :class => 'class' do
         img :id => 'test', :src => "http://img.jpg"
@@ -105,13 +105,16 @@ def renderous(foo, a_title='icky')
   end
 end
 
-10.times {erbous('foo')}
-10.times {markabous('foo')}
-10.times {renderous('foo')}
-
+puts "--- erb:\n\n"
+puts erb('erb', 'i am erb!')
+puts "\n--- markaby:\n\n"
+puts markaby('markaby', 'i am markaby!')
+puts "\n--- parsexml:\n\n"
+puts parsexml('parsexml', 'i am parsexml!')
+puts "\nbenchmarks:\n"
 
 Benchmark.bm do |x|
-  x.report('erb') { 10000.times {erbous('foo')} }
-  x.report('markaby') { 10000.times {markabous('foo')} }
-  x.report('parsexml') { 10000.times {renderous('foo')} }
+  x.report('erb') { 10000.times {|i| erb("erb #{i}", 'i am erb!')} }
+  x.report('markaby') { 10000.times {|i| markaby("markaby #{i}", 'i am markaby!')} }
+  x.report('parsexml') { 10000.times {|i| parsexml("parsexml #{i}", 'i am parsexml!')} }
 end

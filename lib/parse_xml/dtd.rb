@@ -3,18 +3,18 @@ module ParseXml
     class << self
       
       def render(&block)
-        locals = eval('local_variables', block.binding).join(', ')
-        local_values = eval("[#{locals}]", block.binding)
-
+        self.context = block.binding
+        self.caller = eval('self', context)
+        self.locals = eval('local_variables', context)
+        
         unless compiled_procs.member? block.inspect
           processor = Processor.new
           processor.dtd = self
-          sexp = block.to_sexp
-          ruby = Ruby2Ruby.new.process(processor.process(sexp).last)
-          compiled_procs[block.inspect] = eval("proc { |#{locals}| #{ruby} }")
+          ruby = Ruby2Ruby.new.process(processor.process(block.to_sexp).last)
+          compiled_procs[block.inspect] = eval("proc { #{ruby} }")
         end
         
-        capture { compiled_procs[block.inspect].call(*local_values) }
+        capture { compiled_procs[block.inspect].call }
       end
 
       def doctype(*args)
@@ -37,6 +37,16 @@ module ParseXml
       
       private
       
+      attr_accessor :caller, :locals, :context
+      
+      def method_missing(method, *args, &block)
+        if locals.include?(method.to_s) && args.empty? && block.nil?
+          eval(method.to_s, context)
+        else
+          caller.send(method, *args, &block)
+        end
+      end
+      
       def elem(name, &block)
         name = name.to_sym
         e = elements[name] || Element.new(name)
@@ -51,8 +61,11 @@ module ParseXml
       
       def capture
         real_stdout, $stdout = $stdout, StringIO.new
-        result = yield
-        $stdout = real_stdout
+        yield
+        stringio, $stdout = $stdout, real_stdout
+        stringio.rewind
+        result = stringio.read
+        stringio.close
         result
       end
     end

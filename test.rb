@@ -23,8 +23,16 @@ class Html4Strict < XmlDTD
     elem tag
   end
   
+  elem 'html' do
+    root_element
+    default_attributes 'xmlns' => 'www.w3.org/1999/xhtml',
+                      'xml:lang' => 'en',
+                      'lang' => 'en'
+  end
+    
+  
   %w(area base br hr input link meta param).each do |tag|
-    elem(tag) { has_body false }
+    elem(tag) { self_closing }
   end
   
 end
@@ -33,7 +41,7 @@ the_id = "a_test"
 
 block = <<-end_eval
 lambda do
-  html do
+  html 'lang' => 'sp' do
     head do
       title "title page", :id => the_id
     end
@@ -49,8 +57,6 @@ end_eval
 
 h = eval(block)
 
-alias output_xml puts
-
 puts "Block"
 puts "-----"
 puts block
@@ -63,7 +69,7 @@ puts "\n"
 
 puts "optimized S-expression"
 puts "----------------------"
-processor = RubyToXMLProcessor.new
+processor = XmlDTDProcessor.new
 processor.dtd = Html4Strict
 s = processor.process(h.to_sexp)
 p s

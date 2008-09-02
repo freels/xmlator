@@ -2,7 +2,7 @@ require 'rubygems'
 require 'ruby2ruby'
 
 class Sexp
-  alias head first
+  alias_method :head, :first
 
   def tail
     self.slice(1, self.length - 1)
@@ -21,10 +21,12 @@ class Sexp
 
   class << self
     def str(*elems)
-      unless elems.empty?
-        elems.compact.inject(str) { |l,r| concat_strs l, str_for(r) }
-      else
+      if elems.empty?
         s(:str, '')
+      elsif elems.length == 1
+        str_for(elems.first)
+      else
+        elems.compact.inject(str) { |l,r| concat_strs l, str(r) }
       end
     end
 

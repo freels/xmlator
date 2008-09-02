@@ -39,16 +39,29 @@ end
 class XmlElement
   def initialize(name)
     @name = name
-    has_body true
   end
   
-  def has_body(bool = nil)
-    @has_body = bool unless bool.nil?
-    @has_body
+  def root_element
+    @root_element = true
   end
   
-  alias_method :has_body?, :has_body
-
+  def is_root?
+    @root_element
+  end
+  
+  def default_attributes(hash = nil)
+    @default_attributes = hash unless hash.nil?    
+    @default_attributes ||= {}
+  end
+  
+  def self_closing
+    @self_closing = true
+  end
+    
+  def has_body?
+    !@self_closing
+  end
+  
   def attributes
     @attributes ||= []
   end

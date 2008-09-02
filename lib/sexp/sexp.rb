@@ -1,6 +1,3 @@
-require 'rubygems'
-require 'ruby2ruby'
-
 class Sexp
   alias_method :head, :first
 

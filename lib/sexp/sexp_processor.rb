@@ -1,6 +1,3 @@
-require 'rubygems'
-require 'ruby2ruby'
-
 class SexpWildcard
   def eql?(obj)
     true

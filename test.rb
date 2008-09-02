@@ -1,49 +1,83 @@
-require 'xml_dsl'
+$: << 'lib'
 
-class Html4Strict < XmlDTD
-  doctype :HTML, :PUBLIC, "-//W3C//DTD HTML 4.01//EN", "http://www.w3.org/TR/html4/strict.dtd"
+require 'rubygems'
+require 'parsexml'
+require 'html_dtd'
+require 'markaby'
+require 'erb'
+require 'benchmark'
+
+# the_id = "a_test"
+# 
+# block = <<-end_eval
+# lambda do
+#   html 'lang' => 'sp' do
+#     head do
+#       title "title page", :id => the_id
+#     end
+#     body :id => "test", :class => 'class' do
+#       img :id => 'test', :src => "http://img.jpg"
+#       3.times do
+#         p "cool"
+#       end
+#     end
+#   end
+# end
+# end_eval
+# 
+# h = eval(block)
+# 
+# puts "Block"
+# puts "-----"
+# puts block
+# puts "\n"
+# 
+# puts "Block as S-expression"
+# puts "---------------------"
+# p Sexp.from_array(h.to_sexp)
+# puts "\n"
+# 
+# puts "optimized S-expression"
+# puts "----------------------"
+# processor = XmlDTDProcessor.new
+# processor.dtd = Html4Strict
+# s = processor.process(h.to_sexp)
+# p s
+# puts "\n"
+# 
+# puts "optimized block"
+# puts "---------------"
+# b = Ruby2Ruby.new.process(s.last)
+# puts eval("lambda {" + b + "}").to_ruby
+# puts "\n"
+# 
+# puts "output"
+# puts "------"
+# eval(b)
+
+def erbous(foo, a_title='icky')
+  template = ERB.new <<-end_erb
+  <html>
+    <head>
+      <title id="<%= foo %>"><%= a_title %></title>
+    </head>
+    <body id="test" class="class">
+      <img id="test" src="http://img.jpg" />
+      <% 3.times do %>
+        <p>cool</p>
+      <% end %>
+    </body>
+  </html>
+  end_erb
   
-  # allow_all_attributes # don't raise when encountering an unknown attribute
-  
-  # frameset/transitional elements:
-  # 
-  # %w(a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center
-  # cite code col colgroup dd del dir div dfn dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 
-  # head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript
-  # object ol optgroup option p param pre q s samp script select small span strike strong style sub sup
-  # table tbody td textarea tfoot th thead title tr tt u ul var)
-  
-  tags = %w(a abbr acronym address area b base bdo big blockquote body br button caption
-  cite code col colgroup dd del div dfn dl dt em fieldset form h1 h2 h3 h4 h5 h6 
-  head hr html i img input ins kbd label legend li link map meta noscript
-  object ol optgroup option p param pre q samp script select small span strong style sub sup
-  table tbody td textarea tfoot th thead title tr tt ul var)
-  
-  tags.each do |tag|
-    elem tag
-  end
-  
-  elem 'html' do
-    root_element
-    default_attributes 'xmlns' => 'www.w3.org/1999/xhtml',
-                      'xml:lang' => 'en',
-                      'lang' => 'en'
-  end
-    
-  
-  %w(area base br hr input link meta param).each do |tag|
-    elem(tag) { self_closing }
-  end
-  
+  template.result(binding)
 end
 
-the_id = "a_test"
-
-block = <<-end_eval
-lambda do
-  html 'lang' => 'sp' do
+def markabous(foo, a_title='icky')  
+  mab = Markaby::Builder.new(:foo => foo, :a_title => a_title)
+  mab.html do
     head do
-      title "title page", :id => the_id
+      title a_title, :id => foo
     end
     body :id => "test", :class => 'class' do
       img :id => 'test', :src => "http://img.jpg"
@@ -53,34 +87,31 @@ lambda do
     end
   end
 end
-end_eval
 
-h = eval(block)
 
-puts "Block"
-puts "-----"
-puts block
-puts "\n"
+def renderous(foo, a_title='icky')  
+  Html4Strict.render do
+    html do
+      head do
+        title a_title, :id => foo
+      end
+      body :id => "test", :class => 'class' do
+        img :id => 'test', :src => "http://img.jpg"
+        3.times do
+          p "cool"
+        end
+      end
+    end
+  end
+end
 
-puts "Block as S-expression"
-puts "---------------------"
-p Sexp.from_array(h.to_sexp)
-puts "\n"
+10.times {erbous('foo')}
+10.times {markabous('foo')}
+10.times {renderous('foo')}
 
-puts "optimized S-expression"
-puts "----------------------"
-processor = XmlDTDProcessor.new
-processor.dtd = Html4Strict
-s = processor.process(h.to_sexp)
-p s
-puts "\n"
 
-puts "optimized block"
-puts "---------------"
-b = Ruby2Ruby.new.process(s.last)
-puts eval("lambda {" + b + "}").to_ruby
-puts "\n"
-
-puts "output"
-puts "------"
-eval(b)
+Benchmark.bm do |x|
+  x.report('erb') { 10000.times {erbous('foo')} }
+  x.report('markaby') { 10000.times {markabous('foo')} }
+  x.report('parsexml') { 10000.times {renderous('foo')} }
+end

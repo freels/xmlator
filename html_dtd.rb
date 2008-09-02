@@ -1,7 +1,7 @@
-class Html4Strict < XmlDTD
+class Html4Strict < ParseXml::DTD
   doctype :HTML, :PUBLIC, "-//W3C//DTD HTML 4.01//EN", "http://www.w3.org/TR/html4/strict.dtd"
   
-  allow_all_attributes # don't raise when encountering an unknown attribute
+  # allow_all_attributes # don't raise when encountering an unknown attribute
   
   # frameset/transitional elements:
   # 
@@ -21,8 +21,16 @@ class Html4Strict < XmlDTD
     elem tag
   end
   
+  elem 'html' do
+    root_element
+    default_attributes 'xmlns' => 'www.w3.org/1999/xhtml',
+                      'xml:lang' => 'en',
+                      'lang' => 'en'
+  end
+    
+  
   %w(area base br hr input link meta param).each do |tag|
-    elem tag { has_body false }
+    elem(tag) { self_closing }
   end
   
 end

@@ -5,4 +5,3 @@ require 'sexp/sexp_processor'
 require 'xmlator/element'
 require 'xmlator/dtd'
 require 'xmlator/processor'
-

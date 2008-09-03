@@ -3,18 +3,11 @@ module Xmlator
     class << self
       
       def render(&block)
-        self.context = block.binding
-        self.caller = eval('self', context)
-        self.locals = eval('local_variables', context)
-        
         unless compiled_procs.member? block.inspect
-          processor = Processor.new
-          processor.dtd = self
-          ruby = Ruby2Ruby.new.process(processor.process(block.to_sexp).last)
-          compiled_procs[block.inspect] = eval("proc { #{ruby} }")
+          compiled_procs[block.inspect] = Ruby2Ruby.new.process(processor.process(block.to_sexp).last)
         end
-        
-        capture { compiled_procs[block.inspect].call }
+
+        capture { eval(compiled_procs[block.inspect], block.binding) }
       end
 
       def doctype(*args)
@@ -36,17 +29,7 @@ module Xmlator
       end
       
       private
-      
-      attr_accessor :caller, :locals, :context
-      
-      def method_missing(method, *args, &block)
-        if locals.include?(method.to_s) && args.empty? && block.nil?
-          eval(method.to_s, context)
-        else
-          caller.send(method, *args, &block)
-        end
-      end
-      
+            
       def elem(name, &block)
         name = name.to_sym
         e = elements[name] || Element.new(name)
@@ -55,10 +38,19 @@ module Xmlator
         e
       end
       
+      def processor
+        if @processor.nil?
+          @processor = Processor.new
+          @processor.dtd = self
+        end
+        
+        @processor
+      end
+      
       def compiled_procs
         @compiled_procs ||= {}
       end
-      
+                  
       def capture
         real_stdout, $stdout = $stdout, StringIO.new
         yield

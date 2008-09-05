@@ -4,10 +4,11 @@ module Xmlator
       
       def render(&block)
         unless compiled_procs.member? block.inspect
-          compiled_procs[block.inspect] = Ruby2Ruby.new.process(processor.process(block.to_sexp).last)
+          sexp = processor.process(block.to_sexp).last
+          compiled_procs[block.inspect] = %{_xmlator_buf = []\n} + Ruby2Ruby.new.process(sexp) + %{\n_xmlator_buf.join("\n")}
         end
 
-        capture { eval(compiled_procs[block.inspect], block.binding) }
+        eval(compiled_procs[block.inspect], block.binding)
       end
 
       def doctype(*args)
@@ -40,7 +41,7 @@ module Xmlator
       
       def processor
         if @processor.nil?
-          @processor = Processor.new
+          @processor = TagProcessor.new
           @processor.dtd = self
         end
         
@@ -49,16 +50,6 @@ module Xmlator
       
       def compiled_procs
         @compiled_procs ||= {}
-      end
-                  
-      def capture
-        real_stdout, $stdout = $stdout, StringIO.new
-        yield
-        stringio, $stdout = $stdout, real_stdout
-        stringio.rewind
-        result = stringio.read
-        stringio.close
-        result
       end
     end
   end

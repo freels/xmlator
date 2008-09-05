@@ -8,6 +8,9 @@ require 'erb'
 require 'erubis'
 require 'benchmark'
 
+def the_footer
+  "the end"
+end
 
 erb_html = <<-end_erb
 <html>
@@ -19,6 +22,7 @@ erb_html = <<-end_erb
     <% 3.times do %>
       <p>cool</p>
     <% end %>
+    <div class="footer"><%= the_footer %></div>
   </body>
 </html>
 end_erb
@@ -43,27 +47,31 @@ def markaby(title_id, a_title)
     end
     body :id => "test", :class => 'class' do
       img :id => 'test', :src => "http://img.jpg"
+      
       3.times do
         p "cool"
       end
+      
+      div the_footer, :class => 'footer'
     end
   end
 end
 
 
 def parsexml(title_id, a_title)  
-  @title_id = title_id
-  @a_title = a_title
   Html4Strict.render do
-    html do
+    html :id => "test", :class => 'class' do
       head do
         title a_title, :id => title_id
       end
       body :id => "test", :class => 'class' do
         img :id => 'test', :src => "http://img.jpg"
+        
         3.times do
           p "cool"
         end
+        
+        div the_footer, :class => 'footer'
       end
     end
   end
@@ -80,8 +88,8 @@ puts parsexml('parsexml', 'i am parsexml!')
 puts "\nbenchmarks:\n"
 
 Benchmark.bm do |x|
-  x.report('erb') { 10000.times {|i| erb("erb #{i}", 'i am erb!')} }
-  x.report('erubis') { 10000.times {|i| erubis("erubis #{i}", 'i am erubis!')} }
-  x.report('markaby') { 10000.times {|i| markaby("markaby #{i}", 'i am markaby!')} }
   x.report('parsexml') { 10000.times {|i| parsexml("parsexml #{i}", 'i am parsexml!')} }
+  x.report('erubis') { 10000.times {|i| erubis("erubis #{i}", 'i am erubis!')} }
+  x.report('erb') { 10000.times {|i| erb("erb #{i}", 'i am erb!')} }
+  x.report('markaby') { 10000.times {|i| markaby("markaby #{i}", 'i am markaby!')} }
 end
